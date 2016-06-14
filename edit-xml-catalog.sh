@@ -61,10 +61,8 @@ prep_catalog /etc/xml/catalog
 if [ "$ROOTCATALOG" != /etc/xml/catalog ]; then
   root=${ROOTCATALOG#/etc/xml/}
   if ! grep -q "nextCatalog.*catalog=\"${root}\"" /etc/xml/catalog; then
-    cp /etc/xml/catalog /etc/xml/catalog.tmp
-    sed "/<\/catalog>/i\\
-<nextCatalog catalog=\"${root}\"/>" \
-      /etc/xml/catalog.tmp >/etc/xml/catalog
+    sed -i "/<\/catalog>/i\\
+<nextCatalog catalog=\"${root}\"/>" /etc/xml/catalog
   fi
   prep_catalog "$ROOTCATALOG"
 fi
@@ -79,6 +77,9 @@ s == 1 {print}
 /<catalog/{s=1}
 END{print "</catalog>"}'
   } >$ROOTCATALOG.tmp
+  if [ -x /bin/chmod ]; then
+    /bin/chmod --reference=$ROOTCATALOG $ROOTCATALOG.tmp
+  fi
   $xmllint --nocatalogs --noout $ROOTCATALOG.tmp \
     && mv $ROOTCATALOG.tmp $ROOTCATALOG
 }
@@ -103,6 +104,9 @@ s == 1 {next}
 s == 1 {next}
 /<!-- pac_start: $pattern do not remove! -->/{s=1;next}
 {print}" > $ROOTCATALOG.tmp
+    fi
+    if [ -x /bin/chmod ]; then
+      /bin/chmod --reference=$ROOTCATALOG $ROOTCATALOG.tmp
     fi
     $xmllint --nocatalogs --noout $ROOTCATALOG.tmp \
       && mv $ROOTCATALOG.tmp $ROOTCATALOG
