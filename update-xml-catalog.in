@@ -40,7 +40,7 @@ GENDIR=${2:-$DEFAULT_GENDIR}
 die() { echo "$@" 1>&2 ; exit 1; }
 
 # Basic checks
-[ -w "$CATALOG" ] || die "No permission to write catalog or catalog does not exist"
+[ -w "$CATALOG" -o ! -f "$CATALOG" ] || die "No permission to write catalog"
 [ -d "$GENDIR" ] || die "Source directory does not exist"
 
 # Define the command to run with flock:
