@@ -14,8 +14,8 @@ if test ! x$xmlcatalog = "xyes"; then
 fi
 unset xmlcatalog
 
-AC_CONFIG_FILES([Makefile install-dtd.sh parse-sgml-catalog.sh
-                 sgml2xmlcat.sh sgml-register-catalog])
+AC_CONFIG_FILES([Makefile install-catalog install-dtd.sh parse-sgml-catalog.sh
+                 sgml2xmlcat.sh sgml-register-catalog update-xml-catalog])
 AC_OUTPUT
 
 dnl configure.ac ends here

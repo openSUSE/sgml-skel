@@ -1,0 +1,82 @@
+#!/bin/bash
+# Copyright (C) 2016 by SUSE LINUX GmbH.
+# Author: Fabian Vogt <fvogt@suse.com>, 2016.
+# This program is under GPL license. See COPYING file for details.
+
+DEFAULT_CATALOG="/etc/xml/catalog-d.xml"
+DEFAULT_GENDIR="/etc/xml/catalog.d"
+VERBOSE=
+
+# Print help or version and set verbosity
+case $1 in
+    -v|--verbose)
+      VERBOSE=1
+      shift;
+    ;;
+    --version)
+      echo "update-xml-catalog @VERSION@ (part of @PACKAGE@)"
+      exit 0
+    ;;
+    -h|--help)
+      echo -e "update-xml-catalog @VERSION@ (part of @PACKAGE@)\n\
+\n\
+Generates ${DEFAULT_CATALOG} from the files in ${DEFAULT_GENDIR}\n\
+The output file can be overwritten by setting the first parameter,\n\
+the input directory as second parameter. Examples:\n\
+\n\
+update-xml-catalog /tmp/tmpcatalog.xml\n\
+update-xml-catalog /tmp/tmpcatalog.xml /tmp/tmpcatalog.d"
+      exit 0
+    ;;
+    --)
+      shift
+    ;;
+esac
+
+CATALOG=${1:-$DEFAULT_CATALOG}
+GENDIR=${2:-$DEFAULT_GENDIR}
+
+# die: Echo arguments to stderr and exit with 1
+die() { echo "$@" 1>&2 ; exit 1; }
+
+# Basic checks
+[ -w "$CATALOG" ] || die "No permission to write catalog or catalog does not exist"
+[ -d "$GENDIR" ] || die "Source directory does not exist"
+
+# Define the command to run with flock:
+# Redirect the output of a subshell to the catalog.
+# In that subshell, echo the catalog header,
+# run xsltproc to combine the catalog.d files
+# and echo the footer.
+
+read -r -d '' CMD <<EOF
+(
+cat <<EOF2
+<?xml version="1.0"?>
+<!DOCTYPE catalog PUBLIC "-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN" "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+EOF2
+
+# List all non-hidden files in GENDIR recursively, sort the paths and pass them to xsltproc
+# The XSL source is passed as fifo.
+
+find "$GENDIR" -type f -name "[!.]*" -print0 | sort -z | xargs -0 xsltproc <(
+cat <<EOF2
+<?xml version='1.0' encoding='UTF-8'?>
+<xsl:stylesheet version='1.0' xmlns:xsl='http://www.w3.org/1999/XSL/Transform'>
+  <xsl:output method='xml' indent='no' omit-xml-declaration='yes'/>
+  <xsl:template match='/*'>
+    <xsl:copy-of select='node()'/>
+  </xsl:template>
+</xsl:stylesheet>
+EOF2
+)
+
+cat <<EOF2
+</catalog>
+EOF2
+) > "${CATALOG}"
+EOF
+
+# Run command with flock
+flock "$CATALOG" -c "$CMD" 2>&1
