@@ -5,9 +5,14 @@
 
 DEFAULT_CATALOG="/etc/xml/catalog-d.xml"
 DEFAULT_GENDIR="/etc/xml/catalog.d"
+SKIPVALID=
 
 # Print help or version
 case $1 in
+    --skipvalid)
+      SKIPVALID=1
+      shift
+    ;;
     --version)
       echo "update-xml-catalog @VERSION@ (part of @PACKAGE@)"
       exit 0
@@ -35,7 +40,7 @@ GENDIR=${2:-$DEFAULT_GENDIR}
 die() { echo "$@" 1>&2 ; exit 1; }
 
 # Basic checks
-[ -w "$CATALOG" ] || [ -w "$(dirname "$CATALOG")" ] || die "No permission to write catalog"
+[ -w "$CATALOG" ] || [ -w "$(dirname -- "$CATALOG")" ] || die "No permission to write catalog"
 [ -d "$GENDIR" ] || die "Source directory does not exist"
 
 # Create temporary file
@@ -48,6 +53,8 @@ cat > "$tmpfile" <<EOF
 <?xml version="1.0"?>
 <!DOCTYPE catalog PUBLIC "-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN" "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+<!-- Bogus entry to avoid this being empty -->
+<uri name="http://this.does/not#exist" uri="file:///does/not/exist/either"/>
 EOF
 
 [ $? -eq 0 ] || die "cat failed"
@@ -56,7 +63,7 @@ EOF
 # List all non-hidden files in GENDIR recursively, sort the paths and pass them to xsltproc
 # The XSL source is passed as fifo.
 
-find "$GENDIR" -type f -name "[!.]*" -print0 | sort -z | xargs -0 xsltproc >> "$tmpfile" <(
+find "$(realpath -- "$GENDIR")" -type f -name "[!.]*" -print0 | sort -z | xargs -0 xsltproc >> "$tmpfile" <(
 cat <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
@@ -71,5 +78,13 @@ EOF
 # Write the catalog footer
 echo "</catalog>" >> "$tmpfile" || die "echo failed"
 
+# If validation skipped or RNG schema does not exist, skip validation
+if [ -z "$SKIPVALID" ] && [ -f "/usr/share/xml/xmlcatalog/schema/rng/catalog.rng" ]; then
+  if ! err=$(xmllint --noout --relaxng  "/usr/share/xml/xmlcatalog/schema/rng/catalog.rng" "$tmpfile" 2>&1); then
+    echo $err >&2
+    die "Generated catalog not valid"
+  fi
+fi
+
 # Finally rename
-mv "$tmpfile" "$CATALOG" || die "mv failed"
+mv -- "$tmpfile" "$CATALOG" || die "mv failed"
