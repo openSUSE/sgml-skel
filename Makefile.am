@@ -5,7 +5,8 @@ man1_MANS = update-xml-catalog.1
 %.1: %.txt
 	txt2man -t "update-xml-catalog" -r "@VERSION@" -s 1 -v "XML catalog generator" $^ > $@
 
-bin_SCRIPTS = install-catalog \
+bin_SCRIPTS = edit-xml-catalog.sh \
+	install-catalog \
 	install-dtd.sh \
 	parse-sgml-catalog.sh \
 	sgml2xmlcat.sh \
