@@ -48,6 +48,8 @@ tmpfile=$(mktemp) || die "Could not create temporary file"
 # Remove it on exit
 trap rm\ -f\ "$tmpfile" EXIT
 
+chmod -- 644 "$tmpfile" || die "Could not set permissions"
+
 # Write catalog header
 cat > "$tmpfile" <<EOF
 <?xml version="1.0"?>

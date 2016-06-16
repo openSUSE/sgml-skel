@@ -260,7 +260,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 xmlcatalog = @xmlcatalog@
 man1_MANS = update-xml-catalog.1
-bin_SCRIPTS = edit-xml-catalog.sh \
+bin_SCRIPTS = edit-xml-catalog \
 	install-catalog \
 	install-dtd.sh \
 	parse-sgml-catalog.sh \
