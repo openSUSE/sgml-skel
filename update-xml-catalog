@@ -43,12 +43,7 @@ tmpfile=$(mktemp) || die "Could not create temporary file"
 # Remove it on exit
 trap rm\ -f\ "$tmpfile" EXIT
 
-# Define the command to run with flock:
-# Redirect the output of a subshell to the catalog.
-# In that subshell, echo the catalog header,
-# run xsltproc to combine the catalog.d files
-# and echo the footer.
-
+# Write catalog header
 cat > "$tmpfile" <<EOF
 <?xml version="1.0"?>
 <!DOCTYPE catalog PUBLIC "-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN" "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
@@ -57,6 +52,7 @@ EOF
 
 [ $? -eq 0 ] || die "cat failed"
 
+# Write the catalog entries:
 # List all non-hidden files in GENDIR recursively, sort the paths and pass them to xsltproc
 # The XSL source is passed as fifo.
 
@@ -72,6 +68,7 @@ cat <<EOF
 EOF
 ) || die "xsltproc failed"
 
+# Write the catalog footer
 echo "</catalog>" >> "$tmpfile" || die "echo failed"
 
 # Finally rename
