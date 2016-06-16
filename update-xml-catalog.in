@@ -5,14 +5,9 @@
 
 DEFAULT_CATALOG="/etc/xml/catalog-d.xml"
 DEFAULT_GENDIR="/etc/xml/catalog.d"
-VERBOSE=
 
-# Print help or version and set verbosity
+# Print help or version
 case $1 in
-    -v|--verbose)
-      VERBOSE=1
-      shift;
-    ;;
     --version)
       echo "update-xml-catalog @VERSION@ (part of @PACKAGE@)"
       exit 0
@@ -40,8 +35,13 @@ GENDIR=${2:-$DEFAULT_GENDIR}
 die() { echo "$@" 1>&2 ; exit 1; }
 
 # Basic checks
-[ -w "$CATALOG" -o ! -f "$CATALOG" ] || die "No permission to write catalog"
+[ -w "$CATALOG" ] || [ -w "$(dirname "$CATALOG")" ] || die "No permission to write catalog"
 [ -d "$GENDIR" ] || die "Source directory does not exist"
+
+# Create temporary file
+tmpfile=$(mktemp) || die "Could not create temporary file"
+# Remove it on exit
+trap rm\ -f\ "$tmpfile" EXIT
 
 # Define the command to run with flock:
 # Redirect the output of a subshell to the catalog.
@@ -49,34 +49,30 @@ die() { echo "$@" 1>&2 ; exit 1; }
 # run xsltproc to combine the catalog.d files
 # and echo the footer.
 
-read -r -d '' CMD <<EOF
-(
-cat <<EOF2
+cat > "$tmpfile" <<EOF
 <?xml version="1.0"?>
 <!DOCTYPE catalog PUBLIC "-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN" "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
-EOF2
+EOF
+
+[ $? -eq 0 ] || die "cat failed"
 
 # List all non-hidden files in GENDIR recursively, sort the paths and pass them to xsltproc
 # The XSL source is passed as fifo.
 
-find "$GENDIR" -type f -name "[!.]*" -print0 | sort -z | xargs -0 xsltproc <(
-cat <<EOF2
-<?xml version='1.0' encoding='UTF-8'?>
-<xsl:stylesheet version='1.0' xmlns:xsl='http://www.w3.org/1999/XSL/Transform'>
-  <xsl:output method='xml' indent='no' omit-xml-declaration='yes'/>
-  <xsl:template match='/*'>
-    <xsl:copy-of select='node()'/>
+find "$GENDIR" -type f -name "[!.]*" -print0 | sort -z | xargs -0 xsltproc >> "$tmpfile" <(
+cat <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:output method="xml" indent="no" omit-xml-declaration="yes"/>
+  <xsl:template match="/*">
+    <xsl:copy-of select="node()"/>
   </xsl:template>
 </xsl:stylesheet>
-EOF2
-)
-
-cat <<EOF2
-</catalog>
-EOF2
-) > "${CATALOG}"
 EOF
+) || die "xsltproc failed"
 
-# Run command with flock
-flock "$CATALOG" -c "$CMD" 2>&1
+echo "</catalog>" >> "$tmpfile" || die "echo failed"
+
+# Finally rename
+mv "$tmpfile" "$CATALOG" || die "mv failed"
