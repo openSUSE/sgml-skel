@@ -5,6 +5,7 @@
 
 DEFAULT_CATALOG="/etc/xml/catalog-d.xml"
 DEFAULT_GENDIR="/etc/xml/catalog.d"
+CATALOG_SCHEMA="/usr/share/xml/xmlcatalog/schema/rng/catalog.rng"
 SKIPVALID=
 
 # Print help or version
@@ -14,11 +15,11 @@ case $1 in
       shift
     ;;
     --version)
-      echo "update-xml-catalog 0.6 (part of sgml-skel)"
+      echo "update-xml-catalog 0.7 (part of sgml-skel)"
       exit 0
     ;;
     -h|--help)
-      echo -e "update-xml-catalog 0.6 (part of sgml-skel)\n\
+      echo -e "update-xml-catalog 0.7 (part of sgml-skel)\n\
 \n\
 Generates ${DEFAULT_CATALOG} from the files in ${DEFAULT_GENDIR}\n\
 The output file can be overwritten by setting the first parameter,\n\
@@ -61,29 +62,28 @@ EOF
 
 [ $? -eq 0 ] || die "cat failed"
 
-# Write the catalog entries:
-# List all non-hidden files in GENDIR recursively, sort the paths and pass them to xsltproc
-# The XSL source is passed as fifo.
+# Use this for catalog validation
+XMLLINT_RELAXNG=
+[ -z "$SKIPVALID" ] && [ -f "$CATALOG_SCHEMA" ] && XMLLINT_RELAXNG=--relaxng\ "$CATALOG_SCHEMA"
 
-find "$(realpath -- "$GENDIR")" -type f -name "[!.]*" -print0 | sort -z | xargs -0 xsltproc >> "$tmpfile" <(
-cat <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <xsl:output method="xml" indent="no" omit-xml-declaration="yes"/>
-  <xsl:template match="/*">
-    <xsl:copy-of select="node()"/>
-  </xsl:template>
-</xsl:stylesheet>
-EOF
-) || die "xsltproc failed"
+# Write the catalog entries:
+# List all non-hidden files in GENDIR recursively, sort the paths and pass them to xmllint.
+
+err=$(find "$(realpath -- "$GENDIR")" -type f -name "[!.]*" -print0 | sort -z | \
+        xargs -0 xmllint $XMLLINT_RELAXNG --xpath "/*/node()" 2>&1 >> "$tmpfile")
+
+if [ $? -ne 0 ]; then
+  echo "$err" >&2
+  die "xmllint failed"
+fi
 
 # Write the catalog footer
 echo "</catalog>" >> "$tmpfile" || die "echo failed"
 
 # If validation skipped or RNG schema does not exist, skip validation
-if [ -z "$SKIPVALID" ] && [ -f "/usr/share/xml/xmlcatalog/schema/rng/catalog.rng" ]; then
-  if ! err=$(xmllint --noout --relaxng  "/usr/share/xml/xmlcatalog/schema/rng/catalog.rng" "$tmpfile" 2>&1); then
-    echo $err >&2
+if [ -z "$SKIPVALID" ] && [ -f "$CATALOG_SCHEMA" ]; then
+  if ! err=$(xmllint --noout $XMLLINT_RELAXNG "$tmpfile" 2>&1); then
+    echo "$err" >&2
     die "Generated catalog not valid"
   fi
 fi

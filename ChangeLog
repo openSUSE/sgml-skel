@@ -1,3 +1,17 @@
+2016-06-17  Fabian Vogt <fvogt@suse.com>
+
+	* Release 0.7.
+
+	* Move from a tar based upstream to git.
+
+	* Add new update-xml-catalog tool
+
+	* Add edit-xml-catalog
+
+	* Add install-catalog
+
+	* Apply miscellaneous patches without explanation
+
 2002-11-25  Karl Eichwalder  <ke@gnu.franken.de>
 
 	* Release 0.6.

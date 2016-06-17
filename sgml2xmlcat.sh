@@ -9,7 +9,7 @@
 # Convert a normalized SGML catalog to an XML catalog.
 
 package=sgml-skel
-version=0.6
+version=0.7
 
 export LC_ALL=C; export LANG=C; export LANGUAGE=C
 

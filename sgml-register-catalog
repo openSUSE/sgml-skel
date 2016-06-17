@@ -15,7 +15,7 @@ and where <action> is:\n\
   -v, --version                Print the version number and exit\n"
 
 # Set version message
-SGML_VERSION_MESSAGE="${0##*/} (sgml-skel version 0.6)"
+SGML_VERSION_MESSAGE="${0##*/} (sgml-skel version 0.7)"
 
 # Set type of pointer
 SGML_POINTER="CATALOG"
