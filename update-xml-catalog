@@ -15,11 +15,11 @@ case $1 in
       shift
     ;;
     --version)
-      echo "update-xml-catalog 0.7 (part of sgml-skel)"
+      echo "update-xml-catalog 0.7.1 (part of sgml-skel)"
       exit 0
     ;;
     -h|--help)
-      echo -e "update-xml-catalog 0.7 (part of sgml-skel)\n\
+      echo -e "update-xml-catalog 0.7.1 (part of sgml-skel)\n\
 \n\
 Generates ${DEFAULT_CATALOG} from the files in ${DEFAULT_GENDIR}\n\
 The output file can be overwritten by setting the first parameter,\n\
@@ -69,8 +69,8 @@ XMLLINT_RELAXNG=
 # Write the catalog entries:
 # List all non-hidden files in GENDIR recursively, sort the paths and pass them to xmllint.
 
-err=$(find "$(realpath -- "$GENDIR")" -type f -name "[!.]*" -print0 | sort -z | \
-        xargs -0 xmllint $XMLLINT_RELAXNG --xpath "/*/node()" 2>&1 >> "$tmpfile")
+err=$(find "$(realpath -- "$GENDIR")" -type f -not -path '*/\.*' -print0 | sort -z | \
+        xargs --no-run-if-empty -0 xmllint $XMLLINT_RELAXNG --xpath "/*/node()" 2>&1 >> "$tmpfile")
 
 if [ $? -ne 0 ]; then
   echo "$err" >&2

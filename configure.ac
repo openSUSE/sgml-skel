@@ -1,4 +1,4 @@
-AC_INIT(sgml-skel, [0.7], [keichwa@gmx.net])
+AC_INIT(sgml-skel, [0.7.1], [keichwa@gmx.net])
 AC_CONFIG_SRCDIR([install-dtd.sh])
 
 AC_PREREQ(2.56)

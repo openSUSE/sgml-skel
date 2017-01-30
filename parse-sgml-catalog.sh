@@ -4,7 +4,7 @@
 # GPL
 
 package=sgml-skel
-version=0.7
+version=0.7.1
 
 LANGUAGE=C; export LANGUAGE
 LC_ALL=C; export LC_ALL

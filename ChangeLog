@@ -1,3 +1,13 @@
+2017-01-30  Fabian Vogt <fvogt@suse.com>
+
+	* Release 0.7.1.
+
+	* update-xml-catalog now ignores hidden files
+        (fix by sseeberg)
+
+	* update-xml-catalog does not break with
+        empty directories anymore (fix by sseeberg)
+
 2016-06-17  Fabian Vogt <fvogt@suse.com>
 
 	* Release 0.7.

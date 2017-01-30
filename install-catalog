@@ -16,7 +16,7 @@ and where <action> is:
 "
 
 # Set version message
-SGML_VERSION_MESSAGE="sgml-common version 0.7 (install-catalog version 1.0)"
+SGML_VERSION_MESSAGE="sgml-common version 0.7.1 (install-catalog version 1.0)"
 
 # Set type of pointer
 SGML_POINTER="CATALOG"
