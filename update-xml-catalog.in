@@ -69,12 +69,13 @@ XMLLINT_RELAXNG=
 # Write the catalog entries:
 # List all non-hidden files in GENDIR recursively, sort the paths and pass them to xmllint.
 
-err=$(find "$(realpath -- "$GENDIR")" -type f -name "[!.]*" -print0 | sort -z | \
-        xargs -0 xmllint $XMLLINT_RELAXNG --xpath "/*/node()" 2>&1 >> "$tmpfile")
-
-if [ $? -ne 0 ]; then
-  echo "$err" >&2
-  die "xmllint failed"
+files=$(find "$(realpath -- "$GENDIR")" -type f -not -path '*/\.*' | sort -z )
+if [ -n "$files" ]; then
+  err=$(xmllint $XMLLINT_RELAXNG --xpath "/*/node()" $files 2>&1 >> "$tmpfile")
+  if [ $? -ne 0 ]; then
+    echo "$err" >&2
+    die "xmllint failed"
+  fi
 fi
 
 # Write the catalog footer
