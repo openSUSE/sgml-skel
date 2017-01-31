@@ -1,0 +1,4 @@
+Version 0.7.1 - 2017-01-31
+--------------------------
+
+- fixed handling of empty /etc/xml/catalog.d and hidden files
