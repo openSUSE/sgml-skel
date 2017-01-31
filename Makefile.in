@@ -268,7 +268,7 @@ bin_SCRIPTS = edit-xml-catalog \
 	sgml-register-catalog \
 	update-xml-catalog
 
-EXTRA_DIST = $(bin_SCRIPTS) $(bin_SCRIPTS:=.in)
+EXTRA_DIST = $(bin_SCRIPTS) $(bin_SCRIPTS:=.in) $(man1_MANS)
 all: all-am
 
 .SUFFIXES:
@@ -695,9 +695,6 @@ uninstall-man: uninstall-man1
 
 .PRECIOUS: Makefile
 
-
-update-xml-catalog.1: update-xml-catalog.txt
-	txt2man -t "update-xml-catalog" -r "@VERSION@" -s 1 -v "XML catalog generator" $^ > $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
