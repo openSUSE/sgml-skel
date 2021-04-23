@@ -89,4 +89,4 @@ if [ -z "$SKIPVALID" ] && [ -f "$CATALOG_SCHEMA" ]; then
 fi
 
 # Finally rename
-mv -- "$tmpfile" "$CATALOG" || die "mv failed"
+mv -Z -- "$tmpfile" "$CATALOG" || die "mv failed"
