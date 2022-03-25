@@ -1,3 +1,9 @@
+2022-03-23  Tom Schraitle <tom@suse.de>
+
+        * Release 0.7.2.
+        * Ensure resulting file has proper SELinux context #6
+          (fix by Johannes Segitz)
+
 2017-01-30  Fabian Vogt <fvogt@suse.com>
 
 	* Release 0.7.1.

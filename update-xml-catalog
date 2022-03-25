@@ -15,11 +15,11 @@ case $1 in
       shift
     ;;
     --version)
-      echo "update-xml-catalog 0.7.1 (part of sgml-skel)"
+      echo "update-xml-catalog 0.7.2 (part of sgml-skel)"
       exit 0
     ;;
     -h|--help)
-      echo -e "update-xml-catalog 0.7.1 (part of sgml-skel)\n\
+      echo -e "update-xml-catalog 0.7.2 (part of sgml-skel)\n\
 \n\
 Generates ${DEFAULT_CATALOG} from the files in ${DEFAULT_GENDIR}\n\
 The output file can be overwritten by setting the first parameter,\n\
